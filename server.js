@@ -71,15 +71,22 @@ let server  = app.listen(process.env.PORT || 4000,(err)=>{
     else console.log('app has started')
 })
 
-const { ExpressPeerServer } = require("peer");
-const peerServer = ExpressPeerServer(server, {
-  debug: true,
-});
+// const { ExpressPeerServer } = require("peer");
+// const server2 = express()
 
-app.use("/peerjs", peerServer);
+// const videoserver = server2.listen(9000,(err)=>{
+//     if(err)console.log(err)
+//     else console.log('peer server has started')
+// })
+
+// const peerServer = ExpressPeerServer(videoserver, {
+//   debug: true,
+// });
+
+// server2.use("/peerjs", peerServer);
 
 var io = socket(server)
-let message = new Map()
+let message = []
 
 io.use(async (socket,next)=>{
 	try {
@@ -106,26 +113,29 @@ io.sockets.on('connection',(socket)=>{
             socket.to(socket.bookid).broadcast.emit("user-connected",data.hassub);
         }else{
             socket.join(socket.bookid)
+            console.log('this the room '+socket.bookid)
             if(message[socket.bookid]){
                 for(let i=0;i<message[socket.bookid].length;i++){
-                    io.emit('chatMessage',{msg : message[socket.bookid][i].msg,user : message[socket.bookid][i].user})
+                    io.to(socket.id).emit('chatMessage',{msg : message[socket.bookid][i].msg,user : message[socket.bookid][i].user})
+                    console.log(message[socket.bookid][i].msg)
                 }
             }else{
                 message[socket.bookid] = []
             }
             if(data.hassub){
                 console.log('user has connected with us')
-                io.to(socket.bookid).emit("chatMessage",{msg :  `${socket.userid} has joined the chat`,user : ""})
+                io.in(socket.bookid).emit("chatMessage",{msg :  `${socket.userid} has joined the chat`,user : ""})
             }
         }
     })
     socket.on("chatMessage",(data)=>{
+        console.log('in line 127 msg pushed to '+socket.bookid+' and msg is '+data.msg+' and user '+data.user)
         message[socket.bookid].push({msg : data.msg,user : data.user})
-        io.to(socket.bookid).emit("chatMessage",data)
+        io.in(socket.bookid).emit("chatMessage",data)
         console.log(data.msg,data.user)
     })
 
     socket.on("message", (message) => {
-        io.to(socket.bookid).emit("createMessage",{user : socket.ud,msg : message});
+        io.in(socket.bookid).emit("createMessage",{user : socket.ud,msg : message});
     });
 })

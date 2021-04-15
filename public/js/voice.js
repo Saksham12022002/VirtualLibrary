@@ -14,10 +14,14 @@ const videoGrid = document.getElementById("video-grid");
 const myVideo = document.createElement("video");
 myVideo.muted = true;
 
+
 var peer = new Peer(undefined, {
+<<<<<<< HEAD
+=======
   path: "/peerjs",
   host: "/",
   port: "4000",
+>>>>>>> e8b0652ccb5f7a093efa3f74bc5b8eb6493dcdd5
 });
 
 let myVideoStream;
